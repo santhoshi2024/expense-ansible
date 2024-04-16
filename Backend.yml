@@ -1,0 +1,63 @@
+- name: FrontendSetUp
+  hosts: all
+  become: yes
+  tasks:
+    - name: Disable and Enable NodeJS Module
+      ansible.builtin.shell: dnf module disable nodejs -y
+
+    - name: Install nodejs
+      community.general.npm:
+        name: nodejs
+        state: installed
+    - name: Add directory
+      ansible.builtin.file:
+      path: /src/www
+      state: directory
+    - name: copy backend.service file
+      community.general.npm:
+       path: /app
+       state: latest
+
+    - name: cleanup the old content
+      ansible.builtin.file:
+        path: /app
+        state: absent
+
+    - name: Create app directory
+      ansible.builtin.file:
+        path: /app
+        state: directory
+
+    - name: Download andExtract app content
+      ansible.builtin.unarchive:
+        src: https://expense-artifacts.s3.amazonaws.com/expense-backendv2.zip
+        dest: /app
+        remote_src: yes
+    - name: download nodejs dependencies
+      community.general.npm:
+          path: /app/location
+          state: latest
+    - name: Install mysql client
+      ansible.builtin.dnf:
+        name: mysql
+        state: Installed
+    - name: load schema
+      community.mysql.mysql_db:
+        name: all
+        state: import
+        target: /app/schema/backend.sql
+        login_user: root
+        login_password: ExpenseApp@1
+
+    - name: load service file
+      ansible.builtin.service:
+        name: load service file
+        state: reloaded
+    - name: start backend service
+      ansible.builtin.systemd_service:
+          name: backend
+          state: restarted
+          enable: yes
+          daemon_reload: yes
+
+
