@@ -10,7 +10,7 @@
 
     - name: copy expense nginx configuration
       ansible.builtin.copy:
-       src: expence.conf
+       src: expense.conf
        dest: /etc/nginx/default.d/expense.conf
 
     - name: cleanup the old content
